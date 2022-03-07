@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
+using System.IO;
 
 public class MainManager : MonoBehaviour
 {
@@ -22,6 +23,7 @@ public class MainManager : MonoBehaviour
 
         Instance = this;
         DontDestroyOnLoad(gameObject);
+        LoadHighScores();
     }
 
     public void AddHighScore(string _player, int _score)
@@ -29,17 +31,47 @@ public class MainManager : MonoBehaviour
         highScores.Add(new HighScore(_player, _score));
 
         highScores.Sort((x, y) => y.score.CompareTo(x.score));
+
+        SaveHighScores();
     }
 
+    public void SaveHighScores() {
+        PersistentData data = new PersistentData();
+        data.savedHighScores = highScores;
+
+        string json = JsonUtility.ToJson(data);
+
+        File.WriteAllText(Application.persistentDataPath + "/high.sav", json);
+    }
+
+    public void LoadHighScores()
+    {
+        string path = Application.persistentDataPath + "/high.sav";
+        if(File.Exists(path))
+        {
+            string json = File.ReadAllText(path);
+            PersistentData data = JsonUtility.FromJson<PersistentData>(json);
+
+            highScores = data.savedHighScores;
+        }
+    }
+
+    [Serializable]
     public class HighScore
     {
         public string playerName;
         public int score;
-
+        
         public HighScore(string _playerName, int _score)
         {
             playerName = _playerName;
             score = _score;
         }
+    }
+    
+    [Serializable]
+    class PersistentData
+    {
+        public List<HighScore> savedHighScores;
     }
 }
