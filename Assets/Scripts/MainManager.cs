@@ -2,11 +2,15 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using TMPro;
 
 public class MainManager : MonoBehaviour
 {
     public static MainManager Instance;
-    public List<HighScore> highScores;
+    public List<HighScore> highScores = new List<HighScore>();
+
+    public TMP_Text highScoreNamesText;
+    public TMP_Text highScoreScoresText;
 
     private void Awake()
     {
@@ -23,6 +27,8 @@ public class MainManager : MonoBehaviour
     public void AddHighScore(string _player, int _score)
     {
         highScores.Add(new HighScore(_player, _score));
+
+        highScores.Sort((x, y) => y.score.CompareTo(x.score));
     }
 
     public class HighScore

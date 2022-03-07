@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using TMPro;
 
 public class GameManager : MonoBehaviour
 {
@@ -11,16 +12,34 @@ public class GameManager : MonoBehaviour
     public Rigidbody Ball;
 
     public Text ScoreText;
+    public Text HighScoreText;
     public GameObject GameOverText;
+
+    public GameObject HighScorePanel;
+    public TMP_InputField HighScoreInput;
     
     private bool m_Started = false;
     private int m_Points;
+    private int m_HighScore;
     
     private bool m_GameOver = false;
+    private bool m_IsHighScore = false;
 
     // Start is called before the first frame update
     void Start()
     {
+        HighScorePanel.SetActive(false);
+        m_IsHighScore = false;
+        if (MainManager.Instance != null)
+        {
+            if(MainManager.Instance.highScores.Count > 0)
+            {
+                m_HighScore = MainManager.Instance.highScores[0].score;
+                HighScoreText.text = "Best Score: " + MainManager.Instance.highScores[0].playerName + ": " + m_HighScore;
+            }
+        }
+
+
         const float step = 0.6f;
         int perLine = Mathf.FloorToInt(4.0f / step);
         
@@ -52,7 +71,7 @@ public class GameManager : MonoBehaviour
                 Ball.AddForce(forceDir * 2.0f, ForceMode.VelocityChange);
             }
         }
-        else if (m_GameOver)
+        else if (m_GameOver && !m_IsHighScore)
         {
             if (Input.GetKeyDown(KeyCode.Space))
             {
@@ -70,11 +89,25 @@ public class GameManager : MonoBehaviour
     public void GameOver()
     {
         m_GameOver = true;
-        GameOverText.SetActive(true);
+        if (m_Points > m_HighScore)
+        {
+            m_IsHighScore = true;
+            HighScorePanel.SetActive(true);
+        } else
+        {
+            GameOverText.SetActive(true);
+        }
     }
 
     public void OnQuitButtonClicked()
     {
+        SceneManager.LoadScene(0);
+    }
+
+    public void OnHighScoreButtonClick()
+    {
+        MainManager.Instance.AddHighScore(HighScoreInput.text, m_Points);
+        HighScorePanel.SetActive(false);
         SceneManager.LoadScene(0);
     }
 }
